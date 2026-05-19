@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odaklan | Kurtuluş İstasyonu</title>
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --card-bg: #161820;
+            --accent-color: #ff4757;
+            --text-color: #f1f2f6;
+            --text-muted: #a4b0be;
+            --success-color: #2ed573;
+        }
+
+        body {
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #232736;
+        }
+
+        .target-box {
+            border-left: 4px solid var(--accent-color);
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .target-title {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .target-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 5px 0 0 0;
+        }
+
+        .quote-box {
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-style: italic;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #fff;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .timer-btn {
+            background-color: var(--success-color);
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            font-family: monospace;
+            margin: 20px 0;
+            color: var(--success-color);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #2f3542;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="badge">Kritik Bölge: Dopamin Detoksu</div>
+        <h1>SİLKELE KENDİNİ!</h1>
+        <p class="subtitle">O telefon seni yönetemez, sen onu yönetirsin.</p>
+
+        <!-- BÜYÜK HEDEF -->
+        <div class="card target-box">
+            <div class="target-title">Büyük Vizyon ve Hedef</div>
+            <p class="target-text">Geleceğini o anlık dopamin videolarına feda etme. Masaya dön ve o sistemi kur!</p>
+        </div>
+
+        <!-- MOTİVASYON / TOKAT BÖLÜMÜ -->
+        <div class="card">
+            <div id="quoteDisplay" class="quote-box">
+                "Şu an sosyal medyaya girerek başkalarının hayatını izliyorsun. Kendi hayatını inşa etmeyi bırakma."
+            </div>
+            <button onclick="changeQuote()">Elin Telefondan Çekilmiyorsa Bas (ACIL DURUM)</button>
+        </div>
+
+        <!-- DEEP WORK SAYACI -->
+        <div class="card">
+            <div class="target-title" style="color: var(--success-color); text-align: center;">Hemen Masaya Dönüş (Geri Sayım)</div>
+            <div id="timer" class="timer-display">25:00</div>
+            <button id="startBtn" class="timer-btn" onclick="toggleTimer()">Odaklanma Oturumunu Başlat</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Seni sosyal medyadan soğutacak sözler havuzu
+        const quotes = [
+            "Şu an sosyal medyaya girerek başkalarının hayatını izliyorsun. Kendi hayatını inşa etmeyi bırakma.",
+            "O 15 saniyelik videolar senin gelecekteki rahatından daha mı değerli? Masaya dön.",
+            "Kaydırdığın her an, rakiplerinden biri bir soru daha çözüyor, bir adım daha öne geçiyor.",
+            "Dopamin kölesi olmayı bırak. Zor olanı yap, masaya otur ve derin çalışmayı başlat.",
+            "Bugün vermediğin emek, yarın pişmanlık olarak geri dönecek. Telefonu ters çevir ve uzağa koy.",
+            "10 dakika sonra 'ben niye buradayım' diyeceksin. O yüzden o uygulamayı hiç açma!",
+            "Zinciri kırma! Bugün hedeflerine sadık kaldığın o gün olsun."
+        ];
+
+        function changeQuote() {
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            
+            // Küçük bir efekt
+            quoteDisplay.style.opacity = 0;
+            setTimeout(() => {
+                quoteDisplay.innerText = `"${quotes[randomIndex]}"`;
+                quoteDisplay.style.opacity = 1;
+            }, 150);
+        }
+
+        // KRONOMETRE SİSTEMİ (25 Dakikalık Pomodoro/Deep Work)
+        let timeLeft = 25 * 60;
+        let timerId = null;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const startBtn = document.getElementById('startBtn');
+            
+            if (timerId === null) {
+                // Başlat
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerId);
+                        timerId = null;
+                        alert("Harika! Bir bloğu başarıyla tamamladın. Şimdi kısa bir mola ver ama sosyal medyaya dokunma!");
+                        timeLeft = 25 * 60;
+                        updateTimerDisplay();
+                        startBtn.innerText = "Yeniden Başlat";
+                    }
+                }, 1000);
+                startBtn.innerText = "Sayacı Durdur";
+                startBtn.style.backgroundColor = "#ff4757";
+            } else {
+                // Durdur
+                clearInterval(timerId);
+                timerId = null;
+                startBtn.innerText = "Devam Et";
+                startBtn.style.backgroundColor = "#2ed573";
+            }
+        }
+    </script>
+</body>
+</html>
