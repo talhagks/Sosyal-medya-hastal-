@@ -42,4 +42,242 @@
         }
 
         .subtitle {
-            color: var(--
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #232736;
+        }
+
+        .target-box {
+            border-left: 4px solid var(--accent-color);
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .target-title {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .target-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 5px 0 0 0;
+            line-height: 1.4;
+        }
+
+        .quote-box {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-style: italic;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #fff;
+            transition: opacity 0.15s ease-in-out;
+        }
+
+        .author {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--warning-color);
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .timer-btn {
+            background-color: var(--success-color);
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: bold;
+            font-family: monospace;
+            margin: 10px 0;
+            color: var(--success-color);
+            letter-spacing: 2px;
+        }
+
+        .timer-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #2f3542;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .day-badge {
+            color: var(--warning-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="badge">Sistem Aktif: <span id="currentDay" class="day-badge">...</span></div>
+        <h1>SİLKELE KENDİNİ!</h1>
+        <p class="subtitle">O telefon seni yönetemez, sen onu yönetirsin.</p>
+
+        <div class="card target-box">
+            <div id="dayTitle" class="target-title">GÜNLÜK DURUM</div>
+            <p id="dayMessage" class="target-text">Sistem yükleniyor...</p>
+        </div>
+
+        <div class="card">
+            <div id="quoteContainer" class="quote-box">
+                <span id="quoteText">"Başarı, kimse izlemiyorken verdiğin emektir."</span>
+                <span id="quoteAuthor" class="author">Sisteme Hoş Geldin</span>
+            </div>
+            <button onclick="changeQuote()">Elin Telefondan Çekilmiyorsa Bas (İRADENİ TEST ET)</button>
+        </div>
+
+        <div class="card">
+            <div class="target-title" style="color: var(--success-color); text-align: center;">BUGÜNKÜ TOPLAM ÇALIŞMA SÜREN</div>
+            <div id="timer" class="timer-display">00:00:00</div>
+            <div class="timer-subtitle">Bu süre her gece 00:00'da otomatik sıfırlanır ve hafızada tutulur.</div>
+            <button id="startBtn" class="timer-btn" onclick="toggleTimer()">Masa Başındayım, Süreyi Başlat</button>
+        </div>
+
+    </div>
+
+    <script>
+        const quotes = [
+            { text: "Her gün %1 daha iyi olmak, yıl sonunda seni 37 kat daha iyi yapar.", author: "- James Clear" },
+            { text: "Motivasyon geçicidir, sistemler ve alışkanlıklar kalıcıdır. Sistemine sadık kal.", author: "- James Clear" },
+            { text: "Dinlenmek yok. Kazanana kadar çalışmak var. Ben sadece kazanmayı bilirim.", author: "- Kobe Bryant" },
+            { text: "Şampiyonluklar antrenman salonlarında, kimse izlemiyorken kazanılır.", author: "- Kobe Bryant" },
+            { text: "Sıradan insanların olağanüstü olmayı seçebileceğine inanıyorum.", author: "- Elon Musk" },
+            { text: "Eğer bir şeyler senin için gerçekten önemliyse, oranlar aleyhinde olsa bile onu yaparsın.", author: "- Elon Musk" },
+            { text: "Yaptığın işin hakkını ver. Sadece çalışmış olmak için çalışma, derin çalış (Deep Work).", author: "- Cal Newport" },
+            { text: "Odaklanma, 'evet' demek değildir. Diğer yüzlerce iyi fikre 'hayır' diyebilmektir.", author: "- Steve Jobs" },
+            { text: "Disiplin, ne istediğin ile şu an ne istediğin arasında yaptığın seçimdir.", author: "- Abraham Lincoln" },
+            { text: "Yarın yaparım diyenlerin mezarlığı, gerçekleşmemiş hayallerle doludur.", author: "- Marcus Aurelius" }
+        ];
+
+        const daySystems = {
+            0: { name: "Pazar", msg: "Haftanın son günü! Eksiklerini kapatmak ve yeni haftaya güçlü girmek için son viraj. Bırakma!" },
+            1: { name: "Pazartesi", msg: "Haftanın ilk günü! Nasıl başlarsan öyle gider. Sosyal medyayı ilk günden ele ve disiplini kur!" },
+            2: { name: "Salı", msg: "Hafta ivme kazandı. Dünkü emeğinin üzerine koyma vakti. Telefonu kapat, tempoyu koru." },
+            3: { name: "Çarşamba", msg: "Haftanın tam ortasındasın! Kırılma noktası burası. Yorgunluğa yenilme, masaya geç." },
+            4: { name: "Perşembe", msg: "Hafta sonuna az kaldı diye gevşemek yok. Gerçek kazananlar herkes yorulmuşken basanlardır." },
+            5: { name: "Cuma", msg: "Haftanın son düzlüğü! Bu günü de tam odakla bitir ki hafta sonuna vicdanın rahat gir." },
+            6: { name: "Cumartesi", msg: "Cumartesi disiplini! Herkes yatarken veya gezerken senin odaklanman seni zirveye taşıyacak." }
+        };
+
+        let totalSeconds = 0;
+        let timerId = null;
+        let isRunning = false;
+
+        window.onload = function() {
+            const currentDayNumber = new Date().getDay();
+            const dayData = daySystems[currentDayNumber];
+            
+            document.getElementById('currentDay').innerText = dayData.name;
+            document.getElementById('dayTitle').innerText = `${dayData.name} Meydan Okuması`;
+            document.getElementById('dayMessage').innerText = dayData.msg;
+            
+            changeQuote();
+            checkDailyReset(); 
+            updateTimerDisplay();
+        };
+
+        function changeQuote() {
+            const container = document.getElementById('quoteContainer');
+            const quoteText = document.getElementById('quoteText');
+            const quoteAuthor = document.getElementById('quoteAuthor');
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            
+            container.style.opacity = 0;
+            setTimeout(() => {
+                quoteText.innerText = `"${quotes[randomIndex].text}"`;
+                quoteAuthor.innerText = quotes[randomIndex].author;
+                container.style.opacity = 1;
+            }, 150);
+        }
+
+        function checkDailyReset() {
+            const todayDateString = new Date().toLocaleDateString('tr-TR');
+            const savedDate = localStorage.getItem('studyDate');
+            
+            if (savedDate !== todayDateString) {
+                localStorage.setItem('studyDate', todayDateString);
+                localStorage.setItem('totalStudySeconds', 0);
+                totalSeconds = 0;
+            } else {
+                totalSeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${h}:${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const startBtn = document.getElementById('startBtn');
+            
+            if (!isRunning) {
+                checkDailyReset(); 
+                isRunning = true;
+                startBtn.innerText = "Mola Ver / Sayacı Durdur";
+                startBtn.style.backgroundColor = "#ff4757"; 
+                
+                timerId = setInterval(() => {
+                    totalSeconds++;
+                    localStorage.setItem('totalStudySeconds', totalSeconds); 
+                    updateTimerDisplay();
+                }, 1000);
+            } else {
+                isRunning = false;
+                clearInterval(timerId);
+                startBtn.innerText = "Çalışmaya Devam Et";
+                startBtn.style.backgroundColor = "#2ed573"; 
+            }
+        }
+    </script>
+</body>
+</html>
