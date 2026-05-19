@@ -150,6 +150,36 @@
             color: var(--warning-color);
             font-weight: bold;
         }
+
+        /* YENI HAFTALIK PANEL TASARIMI */
+        .history-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .history-table th, .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #232736;
+        }
+
+        .history-table th {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-table td {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .active-day-row {
+            color: var(--success-color);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -176,8 +206,29 @@
         <div class="card">
             <div class="target-title" style="color: var(--success-color); text-align: center;">BUGÜNKÜ TOPLAM ÇALIŞMA SÜREN</div>
             <div id="timer" class="timer-display">00:00:00</div>
-            <div class="timer-subtitle">Bu süre her gece 00:00'da otomatik sıfırlanır ve hafızada tutulur.</div>
+            <div class="timer-subtitle">Bu süre her gece 00:00'da otomatik sıfırlanır ve rapora kaydedilir.</div>
             <button id="startBtn" class="timer-btn" onclick="toggleTimer()">Masa Başındayım, Süreyi Başlat</button>
+        </div>
+
+        <div class="card">
+            <div class="target-title" style="color: var(--warning-color); text-align: center; margin-bottom: 10px;">BU HAFTAKİ RAPORUN</div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Gün</th>
+                        <th style="text-align: right;">Çalışma Süresi</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr id="day-1"><td>Pazartesi</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-2"><td>Salı</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-3"><td>Çarşamba</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-4"><td>Perşembe</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-5"><td>Cuma</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-6"><td>Cumartesi</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                    <tr id="day-0"><td>Pazar</td><td style="text-align: right;" class="time-val">00:00:00</td></tr>
+                </tbody>
+            </table>
         </div>
 
     </div>
@@ -209,6 +260,7 @@
         let totalSeconds = 0;
         let timerId = null;
         let isRunning = false;
+        let lastQuoteIndex = -1;
 
         window.onload = function() {
             const currentDayNumber = new Date().getDay();
@@ -218,16 +270,28 @@
             document.getElementById('dayTitle').innerText = `${dayData.name} Meydan Okuması`;
             document.getElementById('dayMessage').innerText = dayData.msg;
             
+            // Mevcut günü tabloda renklendir
+            const activeRow = document.getElementById(`day-${currentDayNumber}`);
+            if(activeRow) activeRow.classList.add('active-day-row');
+            
             changeQuote();
             checkDailyReset(); 
             updateTimerDisplay();
+            updateHistoryTable();
         };
 
+        // TAMAMEN RASTGELE SÖZ DEĞİŞTİRME MEKANİZMASI
         function changeQuote() {
             const container = document.getElementById('quoteContainer');
             const quoteText = document.getElementById('quoteText');
             const quoteAuthor = document.getElementById('quoteAuthor');
-            const randomIndex = Math.floor(Math.random() * quotes.length);
+            
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * quotes.length);
+            } while (randomIndex === lastQuoteIndex); // Üst üste aynı gelmesini engelle
+            
+            lastQuoteIndex = randomIndex;
             
             container.style.opacity = 0;
             setTimeout(() => {
@@ -237,28 +301,55 @@
             }, 150);
         }
 
+        function formatSeconds(secs) {
+            const h = Math.floor(secs / 3600).toString().padStart(2, '0');
+            const m = Math.floor((secs % 3600) / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        // GEÇMİŞ GÜNLERİ VE BUGÜNÜ HAFIZADA TUTMA
         function checkDailyReset() {
             const todayDateString = new Date().toLocaleDateString('tr-TR');
             const savedDate = localStorage.getItem('studyDate');
+            const currentDayNumber = new Date().getDay();
             
             if (savedDate !== todayDateString) {
+                // Gün değiştiyse, eski günün süresini kalıcı geçmişe yaz
+                if (savedDate) {
+                    const yesterdayDayNumber = (currentDayNumber === 0) ? 6 : currentDayNumber - 1;
+                    const currentActiveSeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
+                    localStorage.setItem(`history-day-${yesterdayDayNumber}`, currentActiveSeconds);
+                }
+                
                 localStorage.setItem('studyDate', todayDateString);
                 localStorage.setItem('totalStudySeconds', 0);
                 totalSeconds = 0;
             } else {
                 totalSeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
             }
+            // Anlık süreyi geçmiş tabloda da güncellemek için
+            localStorage.setItem(`history-day-${currentDayNumber}`, totalSeconds);
         }
 
         function updateTimerDisplay() {
-            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-            const s = (totalSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${h}:${m}:${s}`;
+            document.getElementById('timer').innerText = formatSeconds(totalSeconds);
+            const currentDayNumber = new Date().getDay();
+            const activeRowTime = document.querySelector(`#day-${currentDayNumber} .time-val`);
+            if(activeRowTime) activeRowTime.innerText = formatSeconds(totalSeconds);
+        }
+
+        function updateHistoryTable() {
+            for (let i = 0; i <= 6; i++) {
+                const savedDaySecs = parseInt(localStorage.getItem(`history-day-${i}`)) || 0;
+                const rowTime = document.querySelector(`#day-${i} .time-val`);
+                if(rowTime) rowTime.innerText = formatSeconds(savedDaySecs);
+            }
         }
 
         function toggleTimer() {
             const startBtn = document.getElementById('startBtn');
+            const currentDayNumber = new Date().getDay();
             
             if (!isRunning) {
                 checkDailyReset(); 
@@ -269,6 +360,7 @@
                 timerId = setInterval(() => {
                     totalSeconds++;
                     localStorage.setItem('totalStudySeconds', totalSeconds); 
+                    localStorage.setItem(`history-day-${currentDayNumber}`, totalSeconds);
                     updateTimerDisplay();
                 }, 1000);
             } else {
