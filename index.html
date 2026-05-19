@@ -78,7 +78,7 @@
         }
 
         .quote-box {
-            min-height: 120px;
+            min-height: 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -108,80 +108,7 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .timer-btn {
-            background-color: var(--success-color);
-        }
-
-        .timer-display {
-            font-size: 4rem;
-            font-weight: bold;
-            font-family: monospace;
-            margin: 10px 0;
-            color: var(--success-color);
-            letter-spacing: 2px;
-        }
-
-        .timer-subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #2f3542;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
-
-        .day-badge {
-            color: var(--warning-color);
-            font-weight: bold;
-        }
-
-        /* YENI HAFTALIK PANEL TASARIMI */
-        .history-table {
-            width: 100%;
-            margin-top: 15px;
-            border-collapse: collapse;
-        }
-
-        .history-table th, .history-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #232736;
-        }
-
-        .history-table th {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .history-table td {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .active-day-row {
-            color: var(--success-color);
-            font-weight: bold;
-        }
-    </style>
-</head>
+            transition
 <body>
 
     <div class="container">
@@ -234,7 +161,8 @@
     </div>
 
     <script>
-        const quotes = [
+        // Genişletilmiş Türkçe & İngilizce Havuz
+        const masterQuotes = [
             { text: "Her gün %1 daha iyi olmak, yıl sonunda seni 37 kat daha iyi yapar.", author: "- James Clear" },
             { text: "Motivasyon geçicidir, sistemler ve alışkanlıklar kalıcıdır. Sistemine sadık kal.", author: "- James Clear" },
             { text: "Dinlenmek yok. Kazanana kadar çalışmak var. Ben sadece kazanmayı bilirim.", author: "- Kobe Bryant" },
@@ -244,7 +172,15 @@
             { text: "Yaptığın işin hakkını ver. Sadece çalışmış olmak için çalışma, derin çalış (Deep Work).", author: "- Cal Newport" },
             { text: "Odaklanma, 'evet' demek değildir. Diğer yüzlerce iyi fikre 'hayır' diyebilmektir.", author: "- Steve Jobs" },
             { text: "Disiplin, ne istediğin ile şu an ne istediğin arasında yaptığın seçimdir.", author: "- Abraham Lincoln" },
-            { text: "Yarın yaparım diyenlerin mezarlığı, gerçekleşmemiş hayallerle doludur.", author: "- Marcus Aurelius" }
+            { text: "Yarın yaparım diyenlerin mezarlığı, gerçekleşmemiş hayallerle doludur.", author: "- Marcus Aurelius" },
+            { text: "I've missed more than 9000 shots in my career. I've failed over and over again in my life. And that is why I succeed.", author: "- Michael Jordan" },
+            { text: "Some people want it to happen, some wish it would happen, others make it happen.", author: "- Michael Jordan" },
+            { text: "Discipline is doing what you hate to do, but all the same doing it like you love it.", author: "- Mike Tyson" },
+            { text: "When you're tired, mind says it's over, but it's not. You still have 40% left.", author: "- David Goggins" },
+            { text: "Don't stop when you're tired. Stop when you're done.", author: "- David Goggins" },
+            { text: "Obsession will beat talent every time. You got to be obsessed.", author: "- Kobe Bryant" },
+            { text: "Great things come from hard work and perseverance. No excuses.", author: "- Kobe Bryant" },
+            { text: "The only way to do great work is to love what you do.", author: "- Steve Jobs" }
         ];
 
         const daySystems = {
@@ -260,7 +196,9 @@
         let totalSeconds = 0;
         let timerId = null;
         let isRunning = false;
-        let lastQuoteIndex = -1;
+        
+        // Dinamik karıştırılmış söz torbası
+        let shuffledQuotes = [];
 
         window.onload = function() {
             const currentDayNumber = new Date().getDay();
@@ -270,33 +208,43 @@
             document.getElementById('dayTitle').innerText = `${dayData.name} Meydan Okuması`;
             document.getElementById('dayMessage').innerText = dayData.msg;
             
-            // Mevcut günü tabloda renklendir
             const activeRow = document.getElementById(`day-${currentDayNumber}`);
             if(activeRow) activeRow.classList.add('active-day-row');
             
-            changeQuote();
+            // Söz mekanizmasını tetikle
+            changeQuote();   
             checkDailyReset(); 
             updateTimerDisplay();
             updateHistoryTable();
         };
 
-        // TAMAMEN RASTGELE SÖZ DEĞİŞTİRME MEKANİZMASI
+        // Fisher-Yates Algoritmasıyla Havuzu Çalkalayan Fonksiyon
+        function refreshAndShufflePool() {
+            shuffledQuotes = [...masterQuotes];
+            for (let i = shuffledQuotes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledQuotes[i], shuffledQuotes[j]] = [shuffledQuotes[j], shuffledQuotes[i]];
+            }
+        }
+
+        // KESİNLİKLE EŞSİZ SIRA TABANLI SÖZ SEÇİMİ
         function changeQuote() {
             const container = document.getElementById('quoteContainer');
             const quoteText = document.getElementById('quoteText');
             const quoteAuthor = document.getElementById('quoteAuthor');
             
-            let randomIndex;
-            do {
-                randomIndex = Math.floor(Math.random() * quotes.length);
-            } while (randomIndex === lastQuoteIndex); // Üst üste aynı gelmesini engelle
+            // Eğer torba boşaldıysa ya da ilk kez çalışıyorsa yeniden doldur ve çalkala
+            if (shuffledQuotes.length === 0) {
+                refreshAndShufflePool();
+            }
             
-            lastQuoteIndex = randomIndex;
+            // Torbanın en sonundaki sözü çek al (Böylece sıradaki tamamen benzersiz olur)
+            const selectedQuote = shuffledQuotes.pop();
             
             container.style.opacity = 0;
             setTimeout(() => {
-                quoteText.innerText = `"${quotes[randomIndex].text}"`;
-                quoteAuthor.innerText = quotes[randomIndex].author;
+                quoteText.innerText = `"${selectedQuote.text}"`;
+                quoteAuthor.innerText = selectedQuote.author;
                 container.style.opacity = 1;
             }, 150);
         }
@@ -308,14 +256,12 @@
             return `${h}:${m}:${s}`;
         }
 
-        // GEÇMİŞ GÜNLERİ VE BUGÜNÜ HAFIZADA TUTMA
         function checkDailyReset() {
             const todayDateString = new Date().toLocaleDateString('tr-TR');
             const savedDate = localStorage.getItem('studyDate');
             const currentDayNumber = new Date().getDay();
             
             if (savedDate !== todayDateString) {
-                // Gün değiştiyse, eski günün süresini kalıcı geçmişe yaz
                 if (savedDate) {
                     const yesterdayDayNumber = (currentDayNumber === 0) ? 6 : currentDayNumber - 1;
                     const currentActiveSeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
@@ -328,7 +274,6 @@
             } else {
                 totalSeconds = parseInt(localStorage.getItem('totalStudySeconds')) || 0;
             }
-            // Anlık süreyi geçmiş tabloda da güncellemek için
             localStorage.setItem(`history-day-${currentDayNumber}`, totalSeconds);
         }
 
